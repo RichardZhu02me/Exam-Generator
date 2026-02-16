@@ -20,9 +20,6 @@ const setFile = async (filepath: string) => {
 };
 
 
-
-
-
 export default function Editor({ filepath }: { filepath: string }) {
   const [text, setText] = useState('default_val');
 
