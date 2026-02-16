@@ -1,0 +1,18 @@
+[project]
+name = "exam-generator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.128.0",
+    "langchain>=1.0.4",
+    "langchain-community>=0.4.1",
+    "langchain-core>=1.0.3",
+    "langchain-openai>=1.0.2",
+    "langgraph>=1.0.2",
+    "pinecone>=7.3.0",
+    "pypdf>=6.1.3",
+    "python-dotenv>=1.2.1",
+    "uvicorn>=0.40.0",
+]
