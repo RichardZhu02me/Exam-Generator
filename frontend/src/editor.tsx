@@ -5,29 +5,31 @@ import Typography from '@tiptap/extension-typography'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Mathematics, createMathMigrateTransaction } from '@tiptap/extension-mathematics'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './editor.css'
 
-const defaultContent = `
-    <p>
-      Markdown shortcuts make it easy to format the text while typing.
-    </p>
-    <p>
-      To test that, start a new line and type <code>#</code> followed by a space to get a heading. Try <code>#</code>, <code>##</code>, <code>###</code>, <code>####</code>, <code>#####</code>, <code>######</code> for different levels.
-    </p>
-    <p>
-      Those conventions are called input rules in Tiptap. Some of them are enabled by default. Try <code>></code> for blockquotes, <code>*</code>, <code>-</code> or <code>+</code> for bullet lists, or <code>\`foobar\`</code> to highlight code, <code>~~tildes~~</code> to strike text, or <code>==equal signs==</code> to highlight text.
-    </p>
-    <p>
-      You can overwrite existing input rules or add your own to nodes, marks and extensions.
-    </p>
-    <p>
-      For example, we added the <code>Typography</code> extension here. Try typing <code>(c)</code> to see how it’s converted to a proper © character. You can also try <code>-></code>, <code>>></code>, <code>1/2</code>, <code>!=</code>, or <code>--</code>.
-    </p>
-    `
+const setFile = async (filepath: string) => {
+  const response = await fetch(filepath);
+
+  if (response.ok) {
+    const text: string = await response.text();
+    return text;
+  }
+
+  return response.text();
+};
 
 
-export default function Editor() {
+
+
+
+export default function Editor({ filepath }: { filepath: string }) {
+  const [text, setText] = useState('default_val');
+
+  useEffect(() => {
+    setFile(filepath).then((text) => setText(text)).catch((error) => console.error(error));
+  }, [filepath])
+
   const editor = useEditor({
     shouldRerenderOnTransaction: true,
     extensions: [
@@ -35,17 +37,24 @@ export default function Editor() {
       }),
       StarterKit,
       Highlight,
-      Typography
+      Typography,
     ],
-    content: defaultContent,
+    content: text,
     onUpdate: ({ editor }) => {
       console.log("triggered math migration")
       const tr = editor.state.tr
       const updatedTr = createMathMigrateTransaction(editor, tr)
       console.log("triggered math migration")
       editor.view.dispatch(updatedTr)
-    }
+    },
   })
+
+  useEffect(() => {
+    if (editor && text) {
+      editor.commands.setContent(text);
+    }
+  }, [editor, text]);
+
 
   return (
     <>
