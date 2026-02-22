@@ -1,5 +1,5 @@
 from typing_extensions import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START
 from agents.core import (
     Topics,
     TopicState,
@@ -15,7 +15,6 @@ class TopicUsability(TypedDict):
 
 class TopicSelector:
     def search_topics(self, state: TopicState) -> TopicState:
-        print(state)
         query = state["messages"][-1].content
         records = get_search_results(state["index"], state["namespace"], query, k=5)
         return {"messages": state["messages"], "retrieved_knowledge": records}
@@ -23,9 +22,7 @@ class TopicSelector:
     def select_topics(self, state: TopicState):
         category = get_most_common_attribute(state["retrieved_knowledge"], "category")
         course = get_most_common_attribute(state["retrieved_knowledge"], "course")
-        context = ""
-        for record in state["retrieved_knowledge"]:
-            context += record["text"]
+        context = ", ".join([record["text"] for record in state["retrieved_knowledge"]])
         topic_messages = [
             SystemMessage(
                 content=f"You are a University Professor selecting topics from {category} for the course {course}"
@@ -38,8 +35,6 @@ class TopicSelector:
         topics = self.model.with_structured_output(Topics, strict=True).invoke(
             topic_messages, max_tokens=3000
         )
-        print(topics)
-        print(type(topics))
         return {"messages": state["messages"], "topics": topics["topics"]}
 
     def decide_topic_usability(
@@ -47,7 +42,7 @@ class TopicSelector:
     ) -> Literal["__end__", "select_topics"]:
         category = get_most_common_attribute(state["retrieved_knowledge"], "category")
         course = get_most_common_attribute(state["retrieved_knowledge"], "course")
-        topics = " ".join(state["topics"])
+        topics = ", ".join(state["topics"])
         topic_messages = [
             SystemMessage(
                 content=f"You are a University Professor selecting topics from {category} for the course {course}"
@@ -60,12 +55,6 @@ class TopicSelector:
         usable = self.model.with_structured_output(TopicUsability, strict=True).invoke(
             topic_messages
         )
-        if usable["usable_topics"]:
-            print(
-                "topics can be used to make a creative problem, moving to next subgraph"
-            )
-        else:
-            print("topics are not usable, returning to select_topics")
         return "__end__" if usable["usable_topics"] else "select_topics"
 
     def get_graph(self):

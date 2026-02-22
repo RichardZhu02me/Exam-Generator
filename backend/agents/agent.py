@@ -12,9 +12,9 @@ from thirdparty.pinecone_client import pc
 
 
 def exam_compiler(state: ProblemState) -> ExamState:
-    # print("in exam compiler")
-    for problem in state["problems"]:
-        print(problem)
+    # TODO: implement a more thorough exam compiler
+    # For now, this just passes through the problems
+    return state
 
 
 def continue_to_problem_design(state: TopicState):
@@ -41,11 +41,19 @@ class ExamAgent:
     def get_graph(self):
         return self.graph
 
-    def invoke(self, prompt: Prompt):
-        return self.graph.invoke(
-            {
-                "messages": [HumanMessage(prompt.prompt)],
-                "index": pc.Index(name=prompt.index_name),
-                "namespace": prompt.namespace,
-            }
-        )
+    def invoke(self, prompt: Prompt | dict):
+        if isinstance(prompt, dict):
+            prompt = Prompt(**prompt)
+
+        try:
+            return self.graph.invoke(
+                {
+                    "messages": [HumanMessage(prompt.prompt)],
+                    "index": pc.Index(name=prompt.index_name),
+                    "namespace": prompt.namespace,
+                }
+            )
+        except Exception as e:
+            # Re-raise with more context or log if needed
+            print(f"Error invoking ExamAgent: {e}")
+            raise e

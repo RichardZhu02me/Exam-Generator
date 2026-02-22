@@ -1,3 +1,11 @@
+import sys
+import os
+
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
+
+
 from agents import exam_agent, pc
 from langchain_core.messages import HumanMessage
 
@@ -9,6 +17,6 @@ namespace = "pmath333-ch2"
 
 
 result = exam_agent.invoke(
-    {"messages": [HumanMessage(message)], "index": idx, "namespace": namespace}
+    {"prompt": message, "index_name": index_name, "namespace": namespace}
 )
 print(result)
